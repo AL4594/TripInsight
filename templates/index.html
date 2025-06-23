@@ -1,23 +1,45 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Trip Recommender</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <h1>Find Your Ideal Destination</h1>
-  <form id="tripForm">
-    Nature: <input name="nature" type="number" value="3"><br>
-    Adventure: <input name="adventure" type="number" value="3"><br>
-    Nightlife: <input name="nightlife" type="number" value="3"><br>
-    Seclusion: <input name="seclusion" type="number" value="3"><br>
-    Cuisine: <input name="cuisine" type="number" value="3"><br>
-    Culture: <input name="culture" type="number" value="3"><br>
-    Beach: <input name="beaches" type="number" value="3"><br>
-    Wellness: <input name="wellness" type="number" value="3"><br>
-    <button type="submit">Recommend</button>
-  </form>
+  <div class="container">
+    <h1>Find Your Ideal Destination</h1>
 
-  <div id="results"></div>
+    <form id="tripForm">
+      <label>Nature:
+        <input name="nature" type="number" value="3" min="0" max="5">
+      </label>
+      <label>Adventure:
+        <input name="adventure" type="number" value="3" min="0" max="5">
+      </label>
+      <label>Nightlife:
+        <input name="nightlife" type="number" value="3" min="0" max="5">
+      </label>
+      <label>Seclusion:
+        <input name="seclusion" type="number" value="3" min="0" max="5">
+      </label>
+      <label>Cuisine:
+        <input name="cuisine" type="number" value="3" min="0" max="5">
+      </label>
+      <label>Culture:
+        <input name="culture" type="number" value="3" min="0" max="5">
+      </label>
+      <label>Beach:
+        <input name="beaches" type="number" value="3" min="0" max="5">
+      </label>
+      <label>Wellness:
+        <input name="wellness" type="number" value="3" min="0" max="5">
+      </label>
+
+      <button type="submit">Recommend</button>
+    </form>
+
+    <div id="results" class="recommendations"></div>
+  </div>
 
   <script>
     document.getElementById("tripForm").onsubmit = async (e) => {
@@ -35,8 +57,11 @@
       });
 
       const data = await res.json();
-      document.getElementById("results").innerHTML =
-        "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
+      const resultsDiv = document.getElementById("results");
+      console.log(data)
+      resultsDiv.innerHTML = "<h2>Recommended Destinations:</h2>" + data.map(
+        city => `<div class="city"><strong>${city.city}</strong>, ${city.country}</div>`
+      ).join('');
     };
   </script>
 </body>

@@ -1,0 +1,87 @@
+/* styles.css - Design doux et responsive pour une app de recommandation de voyages */
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(to bottom right, #fefefe, #eef4f7);
+  color: #333;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+h1, h2 {
+  color: #1a3d5e;
+  text-align: center;
+}
+
+form {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  margin-top: 2rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+input[type="number"],
+select {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+}
+
+button {
+  grid-column: span 2;
+  padding: 0.75rem 1.5rem;
+  font-size: 1.1rem;
+  background-color: #0077cc;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #005fa3;
+}
+
+.recommendations {
+  margin-top: 3rem;
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.city {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-left: 4px solid #0077cc;
+  background-color: #f9fbfd;
+  border-radius: 0.5rem;
+}
+
+@media (max-width: 600px) {
+  form {
+    grid-template-columns: 1fr;
+  }
+
+  button {
+    grid-column: span 1;
+  }
+}
