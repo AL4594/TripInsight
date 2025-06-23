@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Trip Recommender</title>
+</head>
+<body>
+  <h1>Find Your Ideal Destination</h1>
+  <form id="tripForm">
+    Nature: <input name="nature" type="number" value="3"><br>
+    Adventure: <input name="adventure" type="number" value="3"><br>
+    Nightlife: <input name="nightlife" type="number" value="3"><br>
+    Seclusion: <input name="seclusion" type="number" value="3"><br>
+    Cuisine: <input name="cuisine" type="number" value="3"><br>
+    Culture: <input name="culture" type="number" value="3"><br>
+    Beach: <input name="beaches" type="number" value="3"><br>
+    Wellness: <input name="wellness" type="number" value="3"><br>
+    <button type="submit">Recommend</button>
+  </form>
+
+  <div id="results"></div>
+
+  <script>
+    document.getElementById("tripForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const json = {};
+      for (const [key, value] of formData.entries()) {
+        json[key] = parseFloat(value);
+      }
+
+      const res = await fetch("/recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(json)
+      });
+
+      const data = await res.json();
+      document.getElementById("results").innerHTML =
+        "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
+    };
+  </script>
+</body>
+</html>
