@@ -8,9 +8,8 @@ import os
 scaler = joblib.load("models/scaler.pkl")
 pca = joblib.load("models/pca.pkl")
 kmeans = joblib.load("models/kmeans.pkl")
-city_data = pd.read_csv("models/city_data.csv")  # Must include PC1, PC2
+city_data = pd.read_csv("data/city_data.csv")  # Must include PC1, PC2
 
-# Flask app
 app = Flask(__name__)
 
 @app.route('/')
@@ -31,7 +30,7 @@ def recommend():
         )
 
         top = city_data.sort_values(by='distance').head(5)
-        return jsonify(top[['city', 'country', 'distance']].to_dict(orient='records'))
+        return jsonify(top[['city', 'country', 'distance','short_description']].to_dict(orient='records'))
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400

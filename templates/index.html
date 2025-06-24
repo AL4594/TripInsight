@@ -1,68 +1,798 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Trip Recommender</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommandation de Ville</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-image:url('../static/bg_img.png');
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #aeafee;
+            background: radial-gradient(circle, rgba(174, 175, 238, 1) 0%, rgba(148, 187, 233, 1) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .gauge-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .gauge-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .gauge-label {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .gauge-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .gauge-track {
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, #e0e0e0, #f0f0f0);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gauge-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gauge-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
+        }
+
+        .gauge-input {
+            width: 100%;
+            height: 40px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            outline: none;
+            position: absolute;
+            top: -16px;
+            cursor: pointer;
+        }
+
+        .gauge-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .gauge-input::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .gauge-input::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .gauge-input::-moz-range-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .gauge-value {
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #667eea;
+            margin-top: 10px;
+        }
+
+        .gauge-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .submit-btn {
+            display: block;
+            width: 200px;
+            margin: 0 auto;
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(76, 175, 80, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .recommendations {
+            margin-top: 40px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .recommendations.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .top5-header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .top5-title {
+            font-size: 2.2em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            animation: slideInFromTop 0.8s ease-out;
+        }
+
+        .top5-subtitle {
+            color: #666;
+            font-size: 1.1em;
+            animation: slideInFromTop 1s ease-out;
+        }
+
+        @keyframes slideInFromTop {
+            0% {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .cities-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .city {
+            position: relative;
+            height: 350px;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+            text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px;
+            border-radius: 20px;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateX(-100px);
+            transition: all 0.6s ease;
+            border: 3px solid transparent;
+            background-clip: padding-box;
+        }
+
+        .city.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .city:nth-child(even) {
+            transform: translateX(100px);
+        }
+
+        .city:nth-child(even).animate {
+            transform: translateX(0);
+        }
+
+        .city:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .city::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.8));
+            z-index: 1;
+        }
+
+        .city::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+            z-index: 2;
+        }
+
+        .city:hover::after {
+            transform: translateX(100%);
+        }
+
+        .city-header {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .city-rank {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+            font-weight: bold;
+            font-size: 1.2em;
+            padding: 10px 15px;
+            border-radius: 50%;
+            min-width: 50px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .city-score {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .city-content {
+            position: relative;
+            z-index: 3;
+        }
+
+        .city-name {
+            font-size: 2.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .city-description {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .city-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .feature-tag {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .scroll-indicator {
+            position: fixed;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .scroll-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .scroll-dot.active {
+            background: #667eea;
+            transform: scale(1.3);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Find Your Ideal Destination</h1>
+    <div class="container">
+        <h1>🌍 Trouvez Votre Ville Idéale</h1>
 
-    <form id="tripForm">
-      <label>Nature:
-        <input name="nature" type="number" value="3" min="0" max="5">
-      </label>
-      <label>Adventure:
-        <input name="adventure" type="number" value="3" min="0" max="5">
-      </label>
-      <label>Nightlife:
-        <input name="nightlife" type="number" value="3" min="0" max="5">
-      </label>
-      <label>Seclusion:
-        <input name="seclusion" type="number" value="3" min="0" max="5">
-      </label>
-      <label>Cuisine:
-        <input name="cuisine" type="number" value="3" min="0" max="5">
-      </label>
-      <label>Culture:
-        <input name="culture" type="number" value="3" min="0" max="5">
-      </label>
-      <label>Beach:
-        <input name="beaches" type="number" value="3" min="0" max="5">
-      </label>
-      <label>Wellness:
-        <input name="wellness" type="number" value="3" min="0" max="5">
-      </label>
+        <form id="recommendationForm">
+            <div class="form-grid">
+                <div class="gauge-container">
+                    <div class="gauge-label">🌿 Nature</div>
+                    <div class="gauge-wrapper">
+                        <div class="gauge-track">
+                            <div class="gauge-fill" id="nature-fill"></div>
+                        </div>
+                        <input type="range" class="gauge-input" id="nature" name="nature" min="1" max="5" value="3" step="1">
+                    </div>
+                    <div class="gauge-value" id="nature-value">3</div>
+                    <div class="gauge-labels">
+                        <span>Urbain</span>
+                        <span>Naturel</span>
+                    </div>
+                </div>
 
-      <button type="submit">Recommend</button>
-    </form>
+                <div class="gauge-container">
+                    <div class="gauge-label">🏔️ Aventure</div>
+                    <div class="gauge-wrapper">
+                        <div class="gauge-track">
+                            <div class="gauge-fill" id="adventure-fill"></div>
+                        </div>
+                        <input type="range" class="gauge-input" id="adventure" name="adventure" min="1" max="5" value="3" step="1">
+                    </div>
+                    <div class="gauge-value" id="adventure-value">3</div>
+                    <div class="gauge-labels">
+                        <span>Relaxant</span>
+                        <span>Aventurier</span>
+                    </div>
+                </div>
 
-    <div id="results" class="recommendations"></div>
-  </div>
+                <div class="gauge-container">
+                    <div class="gauge-label">🏝️ Isolement</div>
+                    <div class="gauge-wrapper">
+                        <div class="gauge-track">
+                            <div class="gauge-fill" id="seclusion-fill"></div>
+                        </div>
+                        <input type="range" class="gauge-input" id="seclusion" name="seclusion" min="1" max="5" value="3" step="1">
+                    </div>
+                    <div class="gauge-value" id="seclusion-value">3</div>
+                    <div class="gauge-labels">
+                        <span>Animé</span>
+                        <span>Isolé</span>
+                    </div>
+                </div>
 
-  <script>
-    document.getElementById("tripForm").onsubmit = async (e) => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      const json = {};
-      for (const [key, value] of formData.entries()) {
-        json[key] = parseFloat(value);
-      }
+                <div class="gauge-container">
+                    <div class="gauge-label">🍽️ Cuisine</div>
+                    <div class="gauge-wrapper">
+                        <div class="gauge-track">
+                            <div class="gauge-fill" id="cuisine-fill"></div>
+                        </div>
+                        <input type="range" class="gauge-input" id="cuisine" name="cuisine" min="1" max="5" value="3" step="1">
+                    </div>
+                    <div class="gauge-value" id="cuisine-value">3</div>
+                    <div class="gauge-labels">
+                        <span>Simple</span>
+                        <span>Gastronomie</span>
+                    </div>
+                </div>
 
-      const res = await fetch("/recommend", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(json)
-      });
+                <div class="gauge-container">
+                    <div class="gauge-label">🏖️ Plages</div>
+                    <div class="gauge-wrapper">
+                        <div class="gauge-track">
+                            <div class="gauge-fill" id="beaches-fill"></div>
+                        </div>
+                        <input type="range" class="gauge-input" id="beaches" name="beaches" min="1" max="5" value="3" step="1">
+                    </div>
+                    <div class="gauge-value" id="beaches-value">3</div>
+                    <div class="gauge-labels">
+                        <span>Peu important</span>
+                        <span>Essentiel</span>
+                    </div>
+                </div>
 
-      const data = await res.json();
-      const resultsDiv = document.getElementById("results");
-      console.log(data)
-      resultsDiv.innerHTML = "<h2>Recommended Destinations:</h2>" + data.map(
-        city => `<div class="city"><strong>${city.city}</strong>, ${city.country}</div>`
-      ).join('');
-    };
-  </script>
+                <div class="gauge-container">
+                    <div class="gauge-label">🧘 Bien-être</div>
+                    <div class="gauge-wrapper">
+                        <div class="gauge-track">
+                            <div class="gauge-fill" id="wellness-fill"></div>
+                        </div>
+                        <input type="range" class="gauge-input" id="wellness" name="wellness" min="1" max="5" value="3" step="1">
+                    </div>
+                    <div class="gauge-value" id="wellness-value">3</div>
+                    <div class="gauge-labels">
+                        <span>Secondaire</span>
+                        <span>Prioritaire</span>
+                    </div>
+                </div>
+
+                <div class="gauge-container">
+                    <div class="gauge-label">🎉 Vie Nocturne</div>
+                    <div class="gauge-wrapper">
+                        <div class="gauge-track">
+                            <div class="gauge-fill" id="nightlife-fill"></div>
+                        </div>
+                        <input type="range" class="gauge-input" id="nightlife" name="nightlife" min="1" max="5" value="3" step="1">
+                    </div>
+                    <div class="gauge-value" id="nightlife-value">3</div>
+                    <div class="gauge-labels">
+                        <span>Calme</span>
+                        <span>Animée</span>
+                    </div>
+                </div>
+
+                <div class="gauge-container">
+                    <div class="gauge-label">🎭 Culture</div>
+                    <div class="gauge-wrapper">
+                        <div class="gauge-track">
+                            <div class="gauge-fill" id="culture-fill"></div>
+                        </div>
+                        <input type="range" class="gauge-input" id="culture" name="culture" min="1" max="5" value="3" step="1">
+                    </div>
+                    <div class="gauge-value" id="culture-value">3</div>
+                    <div class="gauge-labels">
+                        <span>Traditionnel</span>
+                        <span>Moderne</span>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">✨ Découvrir mes villes</button>
+        </form>
+
+        <div id="recommendations" class="recommendations"></div>
+    </div>
+
+    <script>
+        // Initialisation des jauges
+        document.addEventListener('DOMContentLoaded', function() {
+            const gauges = ['nature', 'adventure', 'seclusion', 'cuisine', 'beaches', 'wellness', 'nightlife', 'culture'];
+
+            gauges.forEach(gauge => {
+                const input = document.getElementById(gauge);
+                const fill = document.getElementById(gauge + '-fill');
+                const value = document.getElementById(gauge + '-value');
+
+                function updateGauge() {
+                    const percentage = ((input.value - input.min) / (input.max - input.min)) * 100;
+                    fill.style.width = percentage + '%';
+                    value.textContent = input.value;
+
+                    // Couleurs dynamiques selon la valeur
+                    let color1, color2;
+                    if (input.value <= 2) {
+                        color1 = '#2196F3';
+                        color2 = '#1976D2';
+                    } else if (input.value <= 3) {
+                        color1 = '#4CAF50';
+                        color2 = '#45a049';
+                    } else if (input.value <= 4) {
+                        color1 = '#FF9800';
+                        color2 = '#F57C00';
+                    } else {
+                        color1 = '#F44336';
+                        color2 = '#D32F2F';
+                    }
+
+                    fill.style.background = `linear-gradient(90deg, ${color1}, ${color2})`;
+                }
+
+                updateGauge();
+                input.addEventListener('input', updateGauge);
+            });
+        });
+
+        // Gestion du formulaire
+        document.getElementById('recommendationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+
+            // Convertir en nombres
+            Object.keys(data).forEach(key => {
+                data[key] = parseInt(data[key]);
+            });
+
+            const recommendationsDiv = document.getElementById('recommendations');
+            const submitBtn = this.querySelector('.submit-btn');
+
+            // Afficher le loading
+            recommendationsDiv.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div>Recherche de vos destinations idéales...</div>
+                </div>
+            `;
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Recherche en cours...';
+
+            try {
+                const response = await fetch('/recommend', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    displayRecommendations(result);
+                } else {
+                    recommendationsDiv.innerHTML = `
+                        <div class="loading" style="color: #f44336;">
+                            ❌ Erreur: ${result.error || 'Une erreur est survenue'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                recommendationsDiv.innerHTML = `
+                    <div class="loading" style="color: #f44336;">
+                        ❌ Erreur de connexion: ${error.message}
+                    </div>
+                `;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '✨ Découvrir mes villes';
+            }
+        });
+
+        function displayRecommendations(cities) {
+            const recommendationsDiv = document.getElementById('recommendations');
+
+            if (!cities || cities.length === 0) {
+                recommendationsDiv.innerHTML = `
+                    <div class="loading">
+                        😔 Aucune recommandation trouvée
+                    </div>
+                `;
+                return;
+            }
+
+            const citiesHtml = cities.map((city, index) => {
+                const rank = index + 1;
+                const compatibility = (100 - city.distance * 20).toFixed(1);
+                const features = generateFeatures(city, compatibility);
+
+                return `
+                    <div class="city" id="city-${index}" style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url('/static/images/${encodeURIComponent(city.city)}.jpg')">
+                    <div class="city-header">
+                      <div class="city-rank">#${rank}</div>
+                      <div class="city-score">${compatibility}% compatibilité</div>
+                    </div>
+                    <div class="city-content">
+                      <div class="city-name">${city.city}, ${city.country}</div>
+                      <div class="city-description">${city.short_description || 'Une destination magnifique qui correspond parfaitement à vos critères de voyage.'}</div>
+                      <div class="city-features">
+                        ${features.map(feature => `<span class="feature-tag">${feature}</span>`).join('')}
+                      </div>
+                    </div>
+                  </div>
+                `;
+            }).join('');
+
+            const scrollIndicators = cities.map((_, index) =>
+                `<div class="scroll-dot" data-city="${index}"></div>`
+            ).join('');
+
+            recommendationsDiv.innerHTML = `
+                <div class="top5-header">
+                    <h2 class="top5-title">🏆 Votre Top 5 Destinations</h2>
+                    <p class="top5-subtitle">Sélectionnées spécialement pour vous</p>
+                </div>
+                <div class="cities-container">
+                    ${citiesHtml}
+                </div>
+                <div class="scroll-indicator">
+                    ${scrollIndicators}
+                </div>
+            `;
+
+            // Animation d'apparition
+            setTimeout(() => {
+                recommendationsDiv.classList.add('show');
+            }, 100);
+
+            // Animation séquentielle des villes
+            const cityElements = recommendationsDiv.querySelectorAll('.city');
+            cityElements.forEach((city, index) => {
+                setTimeout(() => {
+                    city.classList.add('animate');
+                }, 200 + (index * 200));
+            });
+
+            // Scroll vers les résultats
+            setTimeout(() => {
+                recommendationsDiv.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 300);
+
+            // Gestion des indicateurs de scroll
+            setupScrollIndicators();
+        }
+
+        function generateFeatures(city, compatibility) {
+            const features = [];
+            const score = parseFloat(compatibility);
+
+            if (score >= 95) features.push('💎 Parfait Match');
+            if (score >= 90) features.push('⭐ Excellent Choix');
+            if (city.city.toLowerCase().includes('paris')) features.push('🎨 Art & Culture');
+            if (city.city.toLowerCase().includes('tokyo')) features.push('🏮 Tradition & Modernité');
+            if (city.city.toLowerCase().includes('bali')) features.push('🏝️ Paradis Tropical');
+            if (city.country === 'France') features.push('🥖 Gastronomie');
+            if (city.country === 'Japan') features.push('🍣 Cuisine Raffinée');
+            if (city.country === 'Italy') features.push('🍝 Authenticité');
+
+            // Features génériques basées sur le score
+            if (score >= 85) features.push('🎯 Recommandé');
+            if (score >= 80) features.push('✨ Populaire');
+
+            return features.slice(0, 4); // Max 4 features
+        }
+
+        function setupScrollIndicators() {
+            const dots = document.querySelectorAll('.scroll-dot');
+            const cities = document.querySelectorAll('.city');
+
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    cities[index].scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                });
+            });
+
+            // Mise à jour des indicateurs au scroll
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const index = Array.from(cities).indexOf(entry.target);
+                        dots.forEach(dot => dot.classList.remove('active'));
+                        if (dots[index]) dots[index].classList.add('active');
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            cities.forEach(city => observer.observe(city));
+        }
+    </script>
 </body>
 </html>
